@@ -1,0 +1,43 @@
+
+@echo off
+
+REM Replace "C:\Path\to\Source\Folder" with the actual path of your source folder
+set "sourceFolder=C:\Path\to\Source\Folder"
+
+REM Replace "C:\Path\to\Destination\Folder" with the actual path of your destination folder
+set "destinationFolder=C:\Path\to\Destination\Folder"
+
+REM Set the desired time of day for the script to run (24-hour format, HH:MM)
+set "scheduledTime=12:35"
+
+REM Set the task name and description
+set "taskName=OneDriveBackUpToHard"
+set "taskDescription=Runs a batch script at a specific time of day"
+
+REM Get the current date and time
+for /f "tokens=2 delims==." %%G in ('wmic OS Get localdatetime /value') do set "currentDateTime=%%G"
+
+REM Extract the current date and time components
+set "currentDate=%currentDateTime:~4,2%/%currentDateTime:~6,2%/%currentDateTime:~0,4%"
+set "currentTime=%currentDateTime:~8,6%"
+
+REM Combine the current date and scheduled time to form the next scheduled date and time
+set "nextScheduledDateTime=%currentDate% %scheduledTime%"
+
+REM Function to perform the file copy
+:CopyFiles
+xcopy "%sourceFolder%" "%destinationFolder%" /E /I /Y
+
+REM Create the scheduled task with the specified time
+schtasks /create /tn "%taskName%" /tr "%~f0" /sc once /st %scheduledTime% /sd %currentDate% /ru "System" /rl highest /f
+
+REM Display a confirmation message
+echo Scheduled task created successfully.
+echo Task Name: %taskName%
+echo Task Description: %taskDescription%
+echo Source Folder: %sourceFolder%
+echo Destination Folder: %destinationFolder%
+echo Scheduled Time: %scheduledTime%
+
+REM Pause to keep the console window open
+pause
